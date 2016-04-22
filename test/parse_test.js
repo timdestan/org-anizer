@@ -9,7 +9,8 @@ describe('parse', () => {
   });
 
   it('should transform * to #', () => {
-    expect(parse('* Tasks\n  ** Do stuff'))
+    expect(parse(`* Tasks
+                  ** Do stuff`))
         .to.eql([{
           valid: true,
           text: '# Tasks'
@@ -17,5 +18,23 @@ describe('parse', () => {
           valid: true,
           text: '## Do stuff'
         }]);
+  });
+
+  it('should parse and emphasize statuses', () => {
+    expect(parse(`* A
+                  ** DONE B
+                  ** TODO C`))
+          .to.eql([{
+            valid: true,
+            text: '# A'
+          }, {
+            valid: true,
+            text: '## *DONE* B',
+            status: 'DONE'
+          }, {
+            valid: true,
+            text: '## *TODO* C',
+            status: 'TODO'
+          }]);
   });
 });

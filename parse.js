@@ -1,20 +1,21 @@
 'use strict';
 
-function fill(n, c) {
-  var str = '';
-  for (var i = 0; i < n; i++) {
-    str = str + c;
-  }
-  return str;
-}
+// Make a string by repeating character c n times.
+let fillString = (n, c) => Array(n + 1).join(c);
 
-let starsToHashes = (() => {
+let makeObject = pairs => {
   let result = {};
-  for (let num of [1,2,3,4,5,6]) {
-    result[fill(num, '*')] = fill(num, '#');
+  for (let [key, value] of pairs) {
+    result[key] = value;
   }
   return result;
-})();
+}
+
+let starsToHashes = makeObject(
+  [1,2,3,4,5,6].map(num => [
+    fillString(num, '*'),
+    fillString(num, '#')
+  ]));
 
 let keywords = {
   'DONE': 'DONE',
@@ -22,7 +23,7 @@ let keywords = {
   'INPROGRESS': 'INPROGRESS'
 };
 
-function headTail(str) {
+function splitOnFirstWhitespace(str) {
   let pieces = str.split(/\s+/);
   let head = pieces.splice(0, 1);
   return [head, pieces.join(' ')]
@@ -30,20 +31,20 @@ function headTail(str) {
 
 let emphasize = (word) => `*${word}*`;
 
-function invalid() {
+function Invalid() {
   return {
     valid: false
   };
 }
 
-function bareText(text) {
+function BareText(text) {
   return {
     valid: true,
     text: text
   };
 }
 
-function textWithStatus(text, status) {
+function TextWithStatus(text, status) {
   return {
     valid: true,
     text: text,
@@ -52,22 +53,24 @@ function textWithStatus(text, status) {
 }
 
 function parseLine(row) {
-  let [stars, rest] = headTail(row.trim());
+  let [stars, rest] = splitOnFirstWhitespace(row.trim());
   var hashes = starsToHashes[stars];
-  if (!hashes) { return invalid(); }
-  let [keyword, desc] = headTail(rest);
+  if (!hashes) { return Invalid(); }
+  let [keyword, desc] = splitOnFirstWhitespace(rest);
   keyword = keywords[keyword];
   if (!keyword) {
-    return bareText(`${hashes} ${rest}`);
+    return BareText(`${hashes} ${rest}`);
   } else {
-    return textWithStatus(`${hashes} ${emphasize(keyword)} ${desc}`, keyword);
+    return TextWithStatus(`${hashes} ${emphasize(keyword)} ${desc}`, keyword);
   }
 }
+
+let nonEmpty = line => line.trim() != '';
 
 function parse(orgText) {
   return orgText
       .split('\n')
-      .filter(line => line.trim() != '')
+      .filter(nonEmpty)
       .map(parseLine);
 }
 
